@@ -1,0 +1,140 @@
+repeat wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = Player:WaitForChild("PlayerGui")
+
+local blur = Instance.new("BlurEffect")
+blur.Size = 24
+blur.Parent = game.Lighting
+
+local outlineThickness = 4
+local outline = Instance.new("Frame")
+outline.Size = UDim2.new(0.3, outlineThickness * 2, 0.4, outlineThickness * 2)
+outline.Position = UDim2.new(0.35, -outlineThickness, 0.3, -outlineThickness)
+outline.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outline.BorderSizePixel = 0
+outline.Parent = screenGui
+
+local outlineCorner = Instance.new("UICorner")
+outlineCorner.CornerRadius = UDim.new(0, 10)
+outlineCorner.Parent = outline
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.3, 0, 0, 150)
+frame.Position = UDim2.new(0.35, 0, 0.3, 0)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+local frameStroke = Instance.new("UIStroke")
+frameStroke.Color = Color3.fromRGB(0, 0, 0)
+frameStroke.Thickness = 6
+frameStroke.Parent = frame
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+})
+gradient.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Parent = frame
+layout.FillDirection = Enum.FillDirection.Vertical
+layout.Padding = UDim.new(0, 10)
+
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, -20, 0, 50)
+textLabel.BackgroundTransparency = 1
+textLabel.Text = "Sylurgen Hub - Fly and ESP are being fixed. Please wait."
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.Font = Enum.Font.SourceSansBold  
+textLabel.TextSize = 24  
+textLabel.TextWrapped = true  
+textLabel.Parent = frame
+
+local okButton = Instance.new("TextButton")
+okButton.Size = UDim2.new(1, -20, 0, 50) 
+okButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  
+okButton.Text = "OK"
+okButton.TextColor3 = Color3.fromRGB(255, 255, 255)  
+okButton.Font = Enum.Font.SourceSansBold  
+okButton.TextSize = 24  
+okButton.Parent = frame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 10)  
+buttonCorner.Parent = okButton  
+
+local function dragFrame(frame)
+    local UserInputService = game:GetService("UserInputService")
+    local dragging, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        local newX = startPos.X + delta.X
+        local newY = startPos.Y + delta.Y
+
+        newX = math.clamp(newX, outlineThickness * -2, workspace.CurrentCamera.ViewportSize.X - outlineThickness * -2 - frame.Size.X.Offset)
+        newY = math.clamp(newY, outlineThickness * -2, workspace.CurrentCamera.ViewportSize.Y - outlineThickness * -2 - frame.Size.Y.Offset)
+
+        frame.Position = UDim2.new(0, newX, 0, newY)
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
+        end
+    end)
+end
+
+dragFrame(frame)
+
+local function onOkButtonClick()
+    local soundIdPlaceholder= "rbxassetid://<your_sound_id>" 
+    local soundExists= false
+    
+    pcall(function()
+        local soundTest= Instance.new("Sound", frame)
+        soundTest.SoundId= soundIdPlaceholder 
+        soundTest:Play()
+        soundExists= true 
+    end)
+
+    if not soundExists then 
+        warn("Sound ID is invalid or cannot be played.")
+    end
+    
+    screenGui:Destroy()
+    blur:Destroy()
+--// basically idk wtf i did here. \\--
+    loadstring(game:HttpGet("your_url_here"))()
+end
+
+okButton.MouseButton1Click:Connect(onOkButtonClick)
+
+Player.Leaving:Connect(function()
+    screenGui:Destroy()
+    blur:Destroy()
+end)
